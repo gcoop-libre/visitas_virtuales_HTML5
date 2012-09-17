@@ -17,56 +17,87 @@
         obj = ns.cords.pop();
         draw(obj.x, obj.y);
       }
-
     
-
       function init() {
         var canvas = document.getElementById('tutorial');
         var img_input = document.getElementById('archivo_imagen');
         
-        
+        function get_cords (ev) {
+          x = ev.clientX + window.scrollX - canvas.offsetLeft;
+          y = ev.clientY + window.scrollY - canvas.offsetTop;
+          return {"x":x, "y":y};
+        }
+
+        function is_near (a, b, radious){
+            return Math.pow(a.x - b.x, 2) + Math.pow(a.y - b.y, 2) < Math.pow(radious, 2);
+        } 
+
         function canvas_click (ev){
-          x = ev.clientX - canvas.offsetLeft;
-          y = ev.clientY - canvas.offsetTop;
-          ns.cords.push({"x":x, "y":y});
-          draw(x, y);
+          var cords = get_cords(ev);
+          ns.cords.push(cords);
+          draw(cords.x, cords.y);
+        }
+        
+        function se_mueve_el_mouse(ev)
+        {
+          c = get_cords(ev); 
+          for (var i=0; i<ns.cords.length; i++) {
+            var obj = ns.cords[i];
+            
+            if (is_near(c, obj, 5)){
+              draw(obj.x, obj.y);
+              return;  
+            }
+          };
         }
         function cargar_imagen(ev)
         {
           var archivo = ev.originalTarget.files[0];
           var reader = FileReader();
-          reader.onloadend = function(){
-            var img = document.createElement("img");
+          reader.onload = function(){
+            var img = new Image();
             img.src = reader.result;
-            console.log(ns.imagenes);
             ns.imagen = img;
+            img.onload = function (){
+                draw(0, 0);
+            console.log('Termine de cargar');
+            }
+            console.log(ns.imagen);
+            console.log('Termine de leer');
           };
-          var data = reader.readAsDataURL(archivo);
-          draw(0, 0);
+          reader.readAsDataURL(archivo);
         }
         
         img_input.addEventListener('change', cargar_imagen, false);
         canvas.addEventListener('click', canvas_click, false);
+        canvas.addEventListener('mousemove', se_mueve_el_mouse, false);
         draw(0, 0);
       }
       function draw(x, y) {
-        console.log('Dibujando');
+        console.log('Dibujando con peron');
 
         var canvas = document.getElementById('tutorial');
         if (canvas.getContext){
           var ctx = canvas.getContext('2d');
           
           //Codigo Aqui
-          //var x = document.getElementById('parametro_x').value;
-          //var y = document.getElementById('parametro_y').value;
              
           ctx.clearRect(0, 0, canvas.width, canvas.height);
           
           ctx.fillStyle = "rgba(0, 200, 0, 0.1)";
-          console.log(ns.imagen);
-          ctx.drawImage(ns.imagen, 0, 0);
+          if (ns.imagen){
+            var img = ns.imagen;
+            var qh = canvas.height / img.naturalHeight;
+            var qw = canvas.width / img.naturalWidth;
+            var factor = qh < qw ? qh : qw;
+            console.log(factor);
+
+            ctx.drawImage(ns.imagen, 0, 0, img.naturalWidth * factor, img.naturalHeight * factor );
+          }
+          ctx.lineWidth = 2;
+          ctx.lineCap  = 'round';
           ctx.beginPath();
-          
+            console.log(ctx.lineWidth);          
           for (var i=0; i<ns.cords.length; i++) {
             var obj = ns.cords[i]
             if (i == 0){
@@ -75,10 +106,10 @@
               ctx.lineTo(obj.x, obj.y);
             }
           }
-          
+          ctx.closePath(); 
+          ctx.stroke();
           ctx.fill();
           ctx.fillStyle = "rgb(200, 0, 0)";
-          ctx.stroke();
 
           ctx.fillStyle = "rgb(200, 0, 0)";
           ctx.fillRect(x - 2, y - 2, 4, 4);
@@ -90,11 +121,10 @@
     </style>
   </head>
   <body onload="init();">
-    <canvas height="400" width="400" id="tutorial"></canvas>
+    <canvas height="400" width="800" id="tutorial"></canvas>
     <form>
-      <input type="file"/ id="archivo_imagen" accept="image/*" />
-      <input type="range"/>
-      <input type="color"/>
+      <input type="file" id="archivo_imagen" accept="image/*" />
+      <input type="file" id="archivo_destino" accept="image/*" />
       <input type="button" value = "Limpiar" onclick="clear_screen();" />
       <input type="button" value = "Deshacer" onclick="deshacer();" />
     </form>
