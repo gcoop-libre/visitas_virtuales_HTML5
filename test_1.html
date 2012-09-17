@@ -1,0 +1,103 @@
+<html>
+  <head>  
+    <title>Tutorial de canvas</title>
+    <script type="text/javascript">
+      var ns = {};
+        ns.cords = [];
+        ns.imagenes = [];
+
+
+      function clear_screen(){
+        console.log('Limpiando')
+        ns.cords = [];
+        draw(0, 0);
+      }
+      function deshacer() {
+        console.log('Deshaciendo');
+        obj = ns.cords.pop();
+        draw(obj.x, obj.y);
+      }
+
+    
+
+      function init() {
+        var canvas = document.getElementById('tutorial');
+        var img_input = document.getElementById('archivo_imagen');
+        
+        
+        function canvas_click (ev){
+          x = ev.clientX - canvas.offsetLeft;
+          y = ev.clientY - canvas.offsetTop;
+          ns.cords.push({"x":x, "y":y});
+          draw(x, y);
+        }
+        function cargar_imagen(ev)
+        {
+          var archivo = ev.originalTarget.files[0];
+          var reader = FileReader();
+          reader.onloadend = function(){
+            var img = document.createElement("img");
+            img.src = reader.result;
+            console.log(ns.imagenes);
+            ns.imagen = img;
+          };
+          var data = reader.readAsDataURL(archivo);
+          draw(0, 0);
+        }
+        
+        img_input.addEventListener('change', cargar_imagen, false);
+        canvas.addEventListener('click', canvas_click, false);
+        draw(0, 0);
+      }
+      function draw(x, y) {
+        console.log('Dibujando');
+
+        var canvas = document.getElementById('tutorial');
+        if (canvas.getContext){
+          var ctx = canvas.getContext('2d');
+          
+          //Codigo Aqui
+          //var x = document.getElementById('parametro_x').value;
+          //var y = document.getElementById('parametro_y').value;
+             
+          ctx.clearRect(0, 0, canvas.width, canvas.height);
+          
+          ctx.fillStyle = "rgba(0, 200, 0, 0.1)";
+          console.log(ns.imagen);
+          ctx.drawImage(ns.imagen, 0, 0);
+          ctx.beginPath();
+          
+          for (var i=0; i<ns.cords.length; i++) {
+            var obj = ns.cords[i]
+            if (i == 0){
+              ctx.moveTo(obj.x, obj.y);
+            } else {
+              ctx.lineTo(obj.x, obj.y);
+            }
+          }
+          
+          ctx.fill();
+          ctx.fillStyle = "rgb(200, 0, 0)";
+          ctx.stroke();
+
+          ctx.fillStyle = "rgb(200, 0, 0)";
+          ctx.fillRect(x - 2, y - 2, 4, 4);
+        }
+      }
+    </script>
+    <style type="text/css">
+      canvas { border: 1px solid black; }
+    </style>
+  </head>
+  <body onload="init();">
+    <canvas height="400" width="400" id="tutorial"></canvas>
+    <form>
+      <input type="file"/ id="archivo_imagen" accept="image/*" />
+      <input type="range"/>
+      <input type="color"/>
+      <input type="button" value = "Limpiar" onclick="clear_screen();" />
+      <input type="button" value = "Deshacer" onclick="deshacer();" />
+    </form>
+
+  </body>
+</html>
