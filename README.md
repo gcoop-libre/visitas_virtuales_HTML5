@@ -42,7 +42,7 @@ Editor
 ------
 El editor permite cargar fotografias, dibujar los trazados, seleccionar el color de relleno, y completar el titulo y la descripción.
 
-Vizualizador
+Visualizador
 ------------
 Permite realizar el recorrido desde el navegador.
 
