@@ -3,24 +3,32 @@
     <title>Tutorial de canvas</title>
     <script type="text/javascript">
       var ns = {};
-        ns.cords = [];
-        ns.imagenes = [];
-
+      ns.cords = [];
+      ns.imagenes = [];
+      
+      function modo_test(){
+        var test = document.getElementById('modo_test');
+        return test.checked; 
+      }
 
       function clear_screen(){
-        console.log('Limpiando')
-        ns.cords = [];
-        draw(0, 0);
+        if (! modo_test()) {
+          ns.cords = [];
+          draw(0, 0);
+        }
       }
+
       function deshacer() {
-        console.log('Deshaciendo');
-        obj = ns.cords.pop();
-        draw(obj.x, obj.y);
+        if (! modo_test()) {
+            obj = ns.cords.pop();
+            draw(obj.x, obj.y);
+        }
       }
     
       function init() {
         var canvas = document.getElementById('tutorial');
         var img_input = document.getElementById('archivo_imagen');
+        
         
         function get_cords (ev) {
           x = ev.clientX + window.scrollX - canvas.offsetLeft;
@@ -29,50 +37,72 @@
         }
 
         function is_near (a, b, radious){
-            return Math.pow(a.x - b.x, 2) + Math.pow(a.y - b.y, 2) < Math.pow(radious, 2);
+          var dist = Math.abs(a.x - b.x) + Math.abs(a.y - b.y);
+          console.log(dist);
+          return dist < radious;
         } 
 
         function canvas_click (ev){
           var cords = get_cords(ev);
-          ns.cords.push(cords);
-          draw(cords.x, cords.y);
+          if (modo_test()) {
+            console.log("estamos en modo test");
+            if (canvas.getContext('2d').isPointInPath(c.x, c.y)) {
+              console.log("estoy adentro de un path");
+              var destino = document.getElementById('archivo_destino');
+              var archivo = destino.files[0];
+              cargar_imagen(archivo);
+            };
+          } else {
+            ns.cords.push(cords);
+            draw(cords.x, cords.y);
+          }
         }
         
-        function se_mueve_el_mouse(ev)
-        {
+        
+        function se_mueve_el_mouse(ev) {
           c = get_cords(ev); 
+          console.log(canvas.getContext('2d').isPointInPath(c.x, c.y));
+          console.log(canvas.getContext('2d').getImageData(c.x, c.y, 1, 1).data);
           for (var i=0; i<ns.cords.length; i++) {
             var obj = ns.cords[i];
             
-            if (is_near(c, obj, 5)){
+            if (is_near(c, obj, 20)){
               draw(obj.x, obj.y);
               return;  
             }
           };
         }
-        function cargar_imagen(ev)
-        {
+        
+        function cargar_imagen_desde_evento(ev){
           var archivo = ev.originalTarget.files[0];
+          cargar_imagen(archivo);
+        }
+        
+        function cargar_imagen(archivo) {
           var reader = FileReader();
+
+          console.log(archivo);
+
           reader.onload = function(){
             var img = new Image();
             img.src = reader.result;
             ns.imagen = img;
+
             img.onload = function (){
-                draw(0, 0);
-            console.log('Termine de cargar');
-            }
-            console.log(ns.imagen);
-            console.log('Termine de leer');
+              draw(0, 0);
+            };
           };
+
           reader.readAsDataURL(archivo);
-        }
-        
-        img_input.addEventListener('change', cargar_imagen, false);
+        };
+
+        img_input.addEventListener('change', cargar_imagen_desde_evento, false);
         canvas.addEventListener('click', canvas_click, false);
         canvas.addEventListener('mousemove', se_mueve_el_mouse, false);
         draw(0, 0);
-      }
+      
+      };
+
       function draw(x, y) {
         console.log('Dibujando con peron');
 
@@ -96,8 +126,9 @@
           }
           ctx.lineWidth = 2;
           ctx.lineCap  = 'round';
+
           ctx.beginPath();
-            console.log(ctx.lineWidth);          
+          console.log(ctx.lineWidth);          
           for (var i=0; i<ns.cords.length; i++) {
             var obj = ns.cords[i]
             if (i == 0){
@@ -127,6 +158,7 @@
       <input type="file" id="archivo_destino" accept="image/*" />
       <input type="button" value = "Limpiar" onclick="clear_screen();" />
       <input type="button" value = "Deshacer" onclick="deshacer();" />
+      <input type="checkbox" id="modo_test"/>
     </form>
 
   </body>
